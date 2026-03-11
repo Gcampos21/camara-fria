@@ -9,9 +9,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARQUIVO = os.path.join(BASE_DIR, "estoque.xlsx")
 
 
-# ----------------------------
+
 # BUSCAR PRODUTO
-# ----------------------------
+
 
 def buscar_produto(codigo):
 
@@ -39,9 +39,8 @@ def buscar_produto(codigo):
     return None
 
 
-# ----------------------------
+
 # CALCULAR ESTOQUE
-# ----------------------------
 
 def calcular_estoque(codigo):
 
@@ -67,9 +66,9 @@ def calcular_estoque(codigo):
     return estoque
 
 
-# ----------------------------
+
 # API BUSCA AUTOMÁTICA
-# ----------------------------
+
 
 @app.route("/produto/<codigo>")
 def produto_api(codigo):
@@ -87,9 +86,9 @@ def produto_api(codigo):
     })
 
 
-# ----------------------------
+
 # MAPA DA CÂMARA
-# ----------------------------
+
 
 @app.route("/mapa")
 def mapa():
@@ -127,9 +126,9 @@ def mapa():
     return render_template("mapa.html", posicoes=posicoes)
 
 
-# ----------------------------
+
 # CONSULTA
-# ----------------------------
+
 
 @app.route("/consulta")
 def consulta():
@@ -180,18 +179,18 @@ def buscar():
     )
 
 
-# ----------------------------
+
 # TELA PRINCIPAL
-# ----------------------------
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-# ----------------------------
+
 # MOVIMENTAÇÃO
-# ----------------------------
+
 
 @app.route("/movimentar", methods=["POST"])
 def movimentar():
