@@ -1,61 +1,69 @@
 from flask import Flask, render_template, request, redirect, jsonify
-from openpyxl import load_workbook
 from datetime import datetime
-import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ARQUIVO = os.path.join(BASE_DIR, "estoque.xlsx")
+# CONEXÃO GOOGLE SHEETS
 
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    "credenciais.json", scope
+)
+
+client = gspread.authorize(creds)
+
+planilha = client.open_by_key("1IL5oZGlpzTCDd9jBV-eKhN1nr8dJJoRLVRYVmNMO6Eo")
+
+aba_produtos = planilha.worksheet("PRODUTOS")
+aba_mov = planilha.worksheet("MOVIMENTACOES")
 
 
 # BUSCAR PRODUTO
 
-
 def buscar_produto(codigo):
 
-    wb = load_workbook(ARQUIVO, data_only=True)
-    sheet = wb["PRODUTOS"]
+    dados = aba_produtos.get_all_records()
 
     codigo = str(codigo).strip()
 
-    for row in sheet.iter_rows(min_row=2):
+    for linha in dados:
 
-        cod_planilha = row[0].value
-
-        if cod_planilha is None:
-            continue
-
-        cod_planilha = str(cod_planilha).strip()
+        cod_planilha = str(linha.get("CODIGO", "")).strip()
 
         if cod_planilha == codigo:
 
-            produto = row[1].value
+            produto = linha.get("PRODUTO")
 
             if produto:
-                return produto.strip()
+                return produto
 
     return None
-
 
 
 # CALCULAR ESTOQUE
 
 def calcular_estoque(codigo):
 
-    wb = load_workbook(ARQUIVO)
-    sheet = wb["MOVIMENTACOES"]
+    dados = aba_mov.get_all_records()
 
     estoque = 0
 
-    for row in sheet.iter_rows(min_row=2, values_only=True):
+    codigo = str(codigo).strip()
 
-        tipo = row[1]
-        cod = row[3]
-        qtd = row[5]
+    for linha in dados:
 
-        if str(cod).strip() == str(codigo).strip():
+        cod_planilha = str(linha.get("CODIGO", "")).strip()
+
+        if cod_planilha == codigo:
+
+            tipo = linha.get("TIPO")
+            qtd = int(linha.get("QTD", 0))
 
             if tipo == "Entrada":
                 estoque += qtd
@@ -65,10 +73,7 @@ def calcular_estoque(codigo):
 
     return estoque
 
-
-
 # API BUSCA AUTOMÁTICA
-
 
 @app.route("/produto/<codigo>")
 def produto_api(codigo):
@@ -86,25 +91,22 @@ def produto_api(codigo):
     })
 
 
-
 # MAPA DA CÂMARA
-
 
 @app.route("/mapa")
 def mapa():
 
-    wb = load_workbook(ARQUIVO)
-    sheet = wb["MOVIMENTACOES"]
+    dados = aba_mov.get_all_records()
 
     posicoes = {}
 
-    for row in sheet.iter_rows(min_row=2, values_only=True):
+    for linha in dados:
 
-        tipo = row[1]
-        endereco = row[2]
-        produto = row[4]
-        qtd = row[5]
-        validade = row[6]
+        tipo = linha["TIPO"]
+        endereco = linha["ENDERECO"]
+        produto = linha["PRODUTO"]
+        qtd = int(linha["QTD"])
+        validade = linha["VALIDADE"]
 
         if not endereco:
             continue
@@ -126,9 +128,7 @@ def mapa():
     return render_template("mapa.html", posicoes=posicoes)
 
 
-
 # CONSULTA
-
 
 @app.route("/consulta")
 def consulta():
@@ -140,20 +140,18 @@ def buscar():
 
     codigo = request.form["codigo"]
 
-    wb = load_workbook(ARQUIVO)
-    sheet = wb["MOVIMENTACOES"]
+    dados = aba_mov.get_all_records()
 
     estoque_total = 0
     posicoes = {}
 
-    for row in sheet.iter_rows(min_row=2, values_only=True):
+    for linha in dados:
 
-        tipo = row[1]
-        endereco = row[2]
-        cod = row[3]
-        qtd = row[5]
+        if str(linha["CODIGO"]).strip() == str(codigo).strip():
 
-        if str(cod).strip() == str(codigo).strip():
+            tipo = linha["TIPO"]
+            endereco = linha["ENDERECO"]
+            qtd = int(linha["QTD"])
 
             if tipo == "Entrada":
 
@@ -179,18 +177,14 @@ def buscar():
     )
 
 
-
 # TELA PRINCIPAL
-
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-
 # MOVIMENTAÇÃO
-
 
 @app.route("/movimentar", methods=["POST"])
 def movimentar():
@@ -234,23 +228,18 @@ def movimentar():
         if quantidade > estoque:
             return "Estoque insuficiente"
 
-    wb = load_workbook(ARQUIVO)
-    sheet = wb["MOVIMENTACOES"]
-
-    linha = sheet.max_row + 1
-
-    sheet.cell(row=linha, column=1).value = datetime.now()
-    sheet.cell(row=linha, column=2).value = tipo
-    sheet.cell(row=linha, column=3).value = endereco
-    sheet.cell(row=linha, column=4).value = codigo
-    sheet.cell(row=linha, column=5).value = produto
-    sheet.cell(row=linha, column=6).value = quantidade
-    sheet.cell(row=linha, column=7).value = validade
-
-    wb.save(ARQUIVO)
+    aba_mov.append_row([
+        str(datetime.now()),
+        tipo,
+        endereco,
+        codigo,
+        produto,
+        quantidade,
+        validade
+    ])
 
     return redirect("/")
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

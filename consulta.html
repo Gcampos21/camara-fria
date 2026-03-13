@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Consulta de Estoque</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h3>Consultar Produto</h3>
+
+<div class="card p-4 shadow">
+
+<form action="/buscar" method="post">
+
+<label>Código</label>
+
+<input name="codigo" class="form-control">
+
+<br>
+
+<button class="btn btn-primary w-100">
+Consultar
+</button>
+
+</form>
+
+</div>
+
+{% if produto %}
+
+<div class="card mt-4 p-4 shadow">
+
+<h4>{{produto}}</h4>
+
+<p><b>Código:</b> {{codigo}}</p>
+
+<p><b>Estoque total:</b> {{estoque}}</p>
+
+<hr>
+
+<h5>Posições</h5>
+
+<table class="table">
+
+<tr>
+<th>Endereço</th>
+<th>Quantidade</th>
+</tr>
+
+{% for endereco, qtd in posicoes.items() %}
+
+<tr>
+
+<td>{{endereco}}</td>
+<td>{{qtd}}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endif %}
+
+<a href="/" class="btn btn-secondary mt-3">
+Voltar
+</a>
+
+</div>
+
+</body>
+</html>
