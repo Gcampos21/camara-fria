@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, jsonify
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 
 app = Flask(__name__)
 
@@ -12,8 +14,12 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credenciais.json", scope
+# LER CREDENCIAIS DA VARIÁVEL DE AMBIENTE (Render)
+
+credenciais_json = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    credenciais_json,
+    scope
 )
 
 client = gspread.authorize(creds)
