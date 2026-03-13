@@ -2,18 +2,26 @@ from flask import Flask, render_template, request, redirect, jsonify
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 
 app = Flask(__name__)
 
+# -------------------------------
 # CONEXÃO GOOGLE SHEETS
+# -------------------------------
 
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credenciais.json", scope
+
+credenciais_json = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    credenciais_json,
+    scope
 )
 
 client = gspread.authorize(creds)
@@ -24,7 +32,6 @@ aba_produtos = planilha.worksheet("PRODUTOS")
 aba_mov = planilha.worksheet("MOVIMENTACOES")
 
 
-# BUSCAR PRODUTO
 
 def buscar_produto(codigo):
 
@@ -46,7 +53,6 @@ def buscar_produto(codigo):
     return None
 
 
-# CALCULAR ESTOQUE
 
 def calcular_estoque(codigo):
 
@@ -73,7 +79,10 @@ def calcular_estoque(codigo):
 
     return estoque
 
+
+# -------------------------------
 # API BUSCA AUTOMÁTICA
+# -------------------------------
 
 @app.route("/produto/<codigo>")
 def produto_api(codigo):
@@ -91,7 +100,9 @@ def produto_api(codigo):
     })
 
 
+# -------------------------------
 # MAPA DA CÂMARA
+# -------------------------------
 
 @app.route("/mapa")
 def mapa():
@@ -128,7 +139,9 @@ def mapa():
     return render_template("mapa.html", posicoes=posicoes)
 
 
+# -------------------------------
 # CONSULTA
+# -------------------------------
 
 @app.route("/consulta")
 def consulta():
@@ -177,14 +190,18 @@ def buscar():
     )
 
 
+# -------------------------------
 # TELA PRINCIPAL
+# -------------------------------
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
+# -------------------------------
 # MOVIMENTAÇÃO
+# -------------------------------
 
 @app.route("/movimentar", methods=["POST"])
 def movimentar():
@@ -242,4 +259,5 @@ def movimentar():
 
 
 if __name__ == "__main__":
-    app.run()
+     port = int(os.environ.get("PORT", 5000))
+     app.run(host="0.0.0.0", port=port)

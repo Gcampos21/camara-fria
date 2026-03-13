@@ -103,32 +103,44 @@ Mapa da Câmara
 
 <script>
 
-const campoCodigo = document.getElementById("codigo")
+document.addEventListener("DOMContentLoaded", function(){
 
-campoCodigo.addEventListener("input", function(){
+    const campoCodigo = document.getElementById("codigo")
+    const campoProduto = document.getElementById("produto")
+    const campoEstoque = document.getElementById("estoque")
 
-    let codigo = this.value.trim()
+    campoCodigo.addEventListener("input", function(){
 
-    if(codigo === ""){
-        document.getElementById("produto").value = ""
-        document.getElementById("estoque").value = ""
-        return
-    }
+        const codigo = campoCodigo.value.trim()
 
-    fetch("/produto/" + codigo)
+        if(codigo === ""){
+            campoProduto.value = ""
+            campoEstoque.value = ""
+            return
+        }
 
-    .then(response => response.json())
+        fetch("/produto/" + codigo)
 
-    .then(data => {
+        .then(res => res.json())
 
-        document.getElementById("produto").value = data.produto || ""
-        document.getElementById("estoque").value = data.estoque || 0
+        .then(data => {
+
+            campoProduto.value = data.produto || ""
+            campoEstoque.value = data.estoque || 0
+
+        })
+
+        .catch(err => {
+
+            console.error("Erro na busca:", err)
+
+        })
 
     })
 
 })
 
-</script>
+</script>   
 
 </body>
 </html>
