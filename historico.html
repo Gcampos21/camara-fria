@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Histórico</h3>
+
+<table class="table">
+<tr>
+<th>Data</th>
+<th>Tipo</th>
+<th>Endereço</th>
+<th>Código</th>
+<th>Produto</th>
+<th>Qtd</th>
+<th>Validade</th>
+</tr>
+
+{% for row in dados %}
+<tr>
+<td>{{row[0]}}</td>
+<td>{{row[1]}}</td>
+<td>{{row[2]}}</td>
+<td>{{row[3]}}</td>
+<td>{{row[4]}}</td>
+<td>{{row[5]}}</td>
+<td>{{row[6]}}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
