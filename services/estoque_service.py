@@ -105,28 +105,21 @@ def buscar_movimentacoes_por_codigo(codigo):
 def registrar_movimentacao(dados):
     wb = abrir_planilha()
     sheet = wb["MOVIMENTACOES"]
-
     linha = sheet.max_row + 1
-
     for i, valor in enumerate(dados, start=1):
         sheet.cell(row=linha, column=i).value = valor
-
     salvar_planilha(wb)
 
-    def resumo_estoque():
+def resumo_estoque():
     wb = abrir_planilha()
     sheet = wb["MOVIMENTACOES"]
-
-    total_entrada = 0
-    total_saida = 0
-
+    entrada = 0
+    saida = 0
     for row in sheet.iter_rows(min_row=2, values_only=True):
         tipo = row[1]
         qtd = row[5] or 0
-
         if tipo == "Entrada":
-            total_entrada += qtd
+            entrada += qtd
         elif tipo == "Saída":
-            total_saida += qtd
-
-    return total_entrada, total_saida
+            saida += qtd
+    return entrada, saida
